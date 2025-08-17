@@ -1,517 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Investment Platform — Admin & Investor</title>
-<style>
-  :root {
-    --bg:#f6f7f9;
-    --card:#ffffff;
-    --ink:#111111;
-    --muted:#6b7280;
-    --line:#e5e7eb;
-    --accent:#111111;
-    --danger:#e53935;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
-  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:20px;width:100%;max-width:980px}
-  h1,h2,h3{margin:0 0 10px}
-  .muted{color:var(--muted);font-size:.95rem}
-  .row{display:flex;gap:8px;align-items:center}
-  .grid{display:grid;gap:12px}
-  .grid-2{grid-template-columns:1fr 1fr}
-  .grid-3{grid-template-columns:1fr 1fr 1fr}
-  input,textarea,select,button{
-    font:inherit;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;outline:none
-  }
-  input:focus,textarea:focus,select:focus{border-color:#cbd5e1;box-shadow:0 0 0 3px #e5e7eb}
-  button{background:var(--accent);color:#fff;cursor:pointer}
-  button.ghost{background:#fff;color:var(--ink)}
-  button.red{background:var(--danger);color:#fff}
-  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .pill{display:inline-block;border:1px solid var(--line);padding:4px 10px;border-radius:999px;font-size:.85rem}
-  .tabbar{display:flex;gap:8px;margin-bottom:14px}
-  .tabbar button{flex:1}
-  .section{display:none}
-  .section.active{display:block}
-  .table{width:100%;border-collapse:collapse}
-  .table th,.table td{border-bottom:1px solid var(--line);text-align:left;padding:10px 6px}
-  .right{text-align:right}
-  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 6px}
-  .kpi .box{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px}
-  .log{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}
-  .log-item{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 2px}
-  @media (max-width:900px){ .grid-2,.grid-3{grid-template-columns:1fr} }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CrownFund$ Demo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
+    header {
+      background: #111;
+      color: #fff;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+    }
+    .hamburger {
+      cursor: pointer;
+      font-size: 24px;
+      margin-right: 15px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: -260px;
+      width: 250px;
+      height: 100%;
+      background: #222;
+      color: #fff;
+      transition: left 0.3s ease;
+      padding-top: 60px;
+      z-index: 100;
+    }
+    .sidebar.active { left: 0; }
+    .sidebar a {
+      display: block;
+      padding: 15px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #444;
+    }
+    main {
+      padding: 20px;
+    }
+    .balance-box {
+      background: #fff;
+      padding: 30px;
+      text-align: center;
+      font-size: 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .btn-invest {
+      display: block;
+      margin: 20px auto;
+      padding: 15px;
+      font-size: 20px;
+      background: linear-gradient(90deg, gold, orange);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-payout {
+      display: block;
+      margin: 10px auto;
+      padding: 12px;
+      font-size: 16px;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+    .history-item {
+      background: #fff;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <div class="topbar">
-      <h2>Investment Platform</h2>
-      <div class="row">
-        <span class="pill" id="whoami">Signed out</span>
-        <button class="ghost" id="btnLogout" style="display:none">Log Out</button>
-      </div>
-    </div>
+  <header>
+    <div class="hamburger">☰</div>
+    <h1>CrownFund$</h1>
+  </header>
 
-    <div class="tabbar">
-      <button id="tabInvestor">Investor</button>
-      <button id="tabAdmin">Admin</button>
-    </div>
-
-    <!-- INVESTOR SECTION -->
-    <section id="investorSection" class="section active">
-      <div id="investorLoginView">
-        <div class="grid">
-          <h3>Investor Sign In</h3>
-          <input id="invUsername" placeholder="Username (e.g., investor)">
-          <input id="invPassword" type="password" placeholder="Password (e.g., 1234)">
-          <button id="invLoginBtn">Sign In</button>
-          <p class="muted">Demo only. Data is saved locally in this browser.</p>
-        </div>
-      </div>
-      <div id="investorDashView" style="display:none">
-        <div class="grid">
-          <div class="kpi">
-            <div class="box">
-              <div class="muted">Investor</div>
-              <div id="invName" style="font-weight:600"></div>
-              <div class="muted" id="invUser"></div>
-            </div>
-            <div class="box right">
-              <div class="muted">Last Update</div>
-              <div id="invUpdated" style="font-weight:600">—</div>
-            </div>
-          </div>
-          <div class="kpi">
-            <div class="box">
-              <div class="muted">Balance</div>
-              <div id="invBalance" style="font-weight:700;font-size:1.4rem">₱0.00</div>
-            </div>
-            <div class="box">
-              <div class="muted">Earnings</div>
-              <div id="invEarnings" style="font-weight:700;font-size:1.4rem">₱0.00</div>
-            </div>
-          </div>
-
-          <h3>Earnings History</h3>
-          <table class="table" id="invHistoryTable">
-            <thead><tr><th>Date & Time</th><th class="right">Amount</th><th>Note</th></tr></thead>
-            <tbody></tbody>
-          </table>
-
-          <h3 style="margin-top:14px">All Transactions</h3>
-          <div class="log" id="invLog"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ADMIN SECTION -->
-    <section id="adminSection" class="section">
-      <!-- Admin Setup (first-time registration) -->
-      <div id="adminSetupView" style="display:none">
-        <div class="grid">
-          <h3>Admin Setup</h3>
-          <p class="muted">Create your admin account using <b>nickname</b> and <b>password</b> (no email).</p>
-          <input id="setupNick" placeholder="Admin nickname">
-          <input id="setupPass" type="password" placeholder="Admin password">
-          <button id="setupBtn">Create Admin</button>
-        </div>
-      </div>
-
-      <!-- Admin Login -->
-      <div id="adminLoginView" style="display:none">
-        <div class="grid">
-          <h3>Admin Sign In</h3>
-          <input id="adminUsername" placeholder="Nickname">
-          <input id="adminPassword" type="password" placeholder="Password">
-          <button id="adminLoginBtn">Sign In</button>
-          <p class="muted">Forgot your password? Clear browser storage to reset setup (demo only).</p>
-        </div>
-      </div>
-
-      <!-- Admin Panel -->
-      <div id="adminPanel" style="display:none">
-        <div class="topbar">
-          <h3>Admin Panel</h3>
-          <span class="muted">Create & manage investor accounts</span>
-        </div>
-
-        <div class="grid grid-2">
-          <div>
-            <h4>Create Investor</h4>
-            <input id="newName" placeholder="Full name">
-            <input id="newUser" placeholder="Username">
-            <input id="newPass" placeholder="Password">
-            <button id="createBtn">Create Investor</button>
-            <p class="muted">Unlimited accounts. Share credentials with investors manually.</p>
-          </div>
-          <div>
-            <h4>Investors</h4>
-            <input id="searchBox" placeholder="Search by name or username">
-            <table class="table" id="investorTable">
-              <thead>
-                <tr><th>Name</th><th>Username</th><th class="right">Balance</th><th class="right">Earnings</th><th></th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div style="margin-top:12px">
-          <h4>Selected Investor</h4>
-          <div class="grid grid-2">
-            <div>
-              <div class="row"><input id="selName" placeholder="Name"><input id="selUser" placeholder="Username" disabled></div>
-              <div class="row"><input id="selBalance" type="number" step="0.01" placeholder="Balance"><input id="selEarnings" type="number" step="0.01" placeholder="Earnings"></div>
-              <div class="row">
-                <button id="btnSetExact">Set Exact</button>
-                <button class="ghost" id="btnResetPass">Reset Password</button>
-                <button class="red" id="btnDelete">Delete</button>
-              </div>
-            </div>
-            <div>
-              <div class="row">
-                <input id="amtCashIn" type="number" step="0.01" placeholder="Cash in amount">
-                <button id="btnCashIn">Cash In (+)</button>
-              </div>
-              <div class="row">
-                <input id="amtAddEarn" type="number" step="0.01" placeholder="Add earnings amount">
-                <input id="noteAddEarn" placeholder="Note (optional)">
-                <button id="btnAddEarn">Add Earnings (+)</button>
-              </div>
-              <div class="row">
-                <input id="amtPayout" type="number" step="0.01" placeholder="Payout amount">
-                <button id="btnPayout">Payout (− from balance)</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-2" style="margin-top:12px">
-            <div>
-              <h4>Earnings History</h4>
-              <table class="table" id="adminHistoryTable">
-                <thead><tr><th>Date & Time</th><th class="right">Amount</th><th>Note</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            </div>
-            <div>
-              <h4>Transaction Log</h4>
-              <div class="log" id="adminLog"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div class="sidebar" id="sidebar">
+    <a href="#" data-section="dashboard">Dashboard</a>
+    <a href="#" data-section="earning">Earning History</a>
+    <a href="#" data-section="payout">Pay-Out History</a>
+    <a href="#" data-section="payin">Pay-In History</a>
+    <a href="#" data-section="invested">Invested (Ongoing)</a>
+    <a href="#" data-section="referral">Referral Bonus</a>
   </div>
-</div>
 
-<script>
-// ===== Utilities =====
-const peso = new Intl.NumberFormat('en-PH', { style:'currency', currency:'PHP' });
-const nowStr = () => new Date().toLocaleString();
+  <main>
+    <!-- Dashboard -->
+    <div class="section active" id="dashboard">
+      <div class="balance-box">
+        Balance: ₱<span id="balance">1000</span>
+      </div>
+      <button class="btn-invest" id="investBtn">Invest Now!</button>
+      <button class="btn-payout">Request Pay-Out</button>
+    </div>
 
-function loadDB(){
-  const raw = localStorage.getItem('investorsDB_v2');
-  let db = raw ? JSON.parse(raw) : { investors:{}, admin:null };
-  // Seed one demo investor if none exist
-  if(Object.keys(db.investors).length===0){
-    db.investors['investor'] = {
-      username:'investor',
-      password:'1234',
-      name:'Sample Investor',
-      balance:53599,
-      earnings:12340,
-      updated: nowStr(),
-      log: [{t: nowStr(), m:'Account created with demo amounts'}],
-      earningsHistory: [
-        {t: nowStr(), amt: 2000, note:'Welcome bonus'},
-        {t: nowStr(), amt: 340, note:'Daily profit'}
-      ]
+    <!-- Earning History -->
+    <div class="section" id="earning">
+      <h2>Earning History</h2>
+      <div id="earningList"></div>
+    </div>
+
+    <!-- Payout History -->
+    <div class="section" id="payout">
+      <h2>Pay-Out History</h2>
+      <div id="payoutList"></div>
+    </div>
+
+    <!-- Pay-In History -->
+    <div class="section" id="payin">
+      <h2>Pay-In History</h2>
+      <div id="payinList"></div>
+    </div>
+
+    <!-- Invested -->
+    <div class="section" id="invested">
+      <h2>Ongoing Investments</h2>
+      <div id="investments"></div>
+    </div>
+
+    <!-- Referral -->
+    <div class="section" id="referral">
+      <h2>Referral Bonus</h2>
+      <p>Share your link: <input type="text" value="https://crownfunds.com/ref/123" readonly style="width:100%"></p>
+      <p>When your referral invests, you earn 30% of their profit!</p>
+    </div>
+  </main>
+
+  <script>
+    const hamburger = document.querySelector(".hamburger");
+    const sidebar = document.getElementById("sidebar");
+    const sections = document.querySelectorAll(".section");
+    const balanceEl = document.getElementById("balance");
+    let balance = 1000;
+    let investments = [];
+
+    // Toggle sidebar
+    hamburger.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+    });
+
+    // Navigation
+    document.querySelectorAll(".sidebar a").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        sections.forEach(s => s.classList.remove("active"));
+        document.getElementById(link.dataset.section).classList.add("active");
+        sidebar.classList.remove("active");
+      });
+    });
+
+    // Invest button
+    document.getElementById("investBtn").addEventListener("click", () => {
+      const investAmount = 500; // fixed demo
+      if (balance >= investAmount) {
+        balance -= investAmount;
+        balanceEl.textContent = balance;
+        const inv = {
+          amount: investAmount,
+          profit: 0,
+          interval: setInterval(() => {
+            if (inv.profit < investAmount * 0.3) {
+              inv.profit += investAmount * 0.05;
+              renderInvestments();
+            } else {
+              clearInterval(inv.interval);
+            }
+          }, 2000) // 2s = 12hrs in demo
+        };
+        investments.push(inv);
+        renderInvestments();
+      } else {
+        alert("Not enough balance!");
+      }
+    });
+
+    function renderInvestments() {
+      const container = document.getElementById("investments");
+      container.innerHTML = "";
+      investments.forEach((inv, idx) => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+          Invested: ₱${inv.amount} <br>
+          Profit: ₱${inv.profit.toFixed(2)} <br>
+          ${inv.profit >= inv.amount * 0.3 ? `<button onclick="claim(${idx})">Claim</button>` : ""}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.claim = function(idx) {
+      const inv = investments[idx];
+      balance += inv.amount + inv.profit;
+      balanceEl.textContent = balance;
+      investments.splice(idx, 1);
+      renderInvestments();
+      alert("Investment claimed!");
     };
-  }
-  localStorage.setItem('investorsDB_v2', JSON.stringify(db));
-  return db;
-}
-function saveDB(db){ localStorage.setItem('investorsDB_v2', JSON.stringify(db)); }
-function listInvestors(db){ return Object.values(db.investors); }
-function addLog(acc, msg){ acc.log = acc.log || []; acc.log.unshift({t: nowStr(), m: msg}); acc.updated = nowStr(); }
-function addEarning(acc, amount, note){
-  acc.earningsHistory = acc.earningsHistory || [];
-  acc.earningsHistory.unshift({t: nowStr(), amt: amount, note: note||''});
-  addLog(acc, `Earnings +${peso.format(amount)} (${note||'No note'})`);
-}
-
-// ===== State =====
-let DB = loadDB();
-let currentUser = null; // {role:'admin'|'investor', username:...}
-let selected = null;    // selected investor in admin panel
-
-// ===== Sections & Tabs =====
-const investorSection = document.getElementById('investorSection');
-const adminSection = document.getElementById('adminSection');
-document.getElementById('tabInvestor').onclick = ()=>showSection('investor');
-document.getElementById('tabAdmin').onclick = ()=>showSection('admin');
-function showSection(which){
-  investorSection.classList.toggle('active', which==='investor');
-  adminSection.classList.toggle('active', which==='admin');
-}
-
-// ===== Header chrome =====
-const who = document.getElementById('whoami');
-const btnLogout = document.getElementById('btnLogout');
-btnLogout.onclick = ()=>{
-  currentUser = null;
-  who.textContent = 'Signed out';
-  btnLogout.style.display='none';
-  // reset views
-  document.getElementById('investorDashView').style.display='none';
-  document.getElementById('investorLoginView').style.display='block';
-  ensureAdminViews();
-};
-
-function setSignedIn(role, username){
-  currentUser = {role, username};
-  who.textContent = role.charAt(0).toUpperCase()+role.slice(1) + ': ' + username;
-  btnLogout.style.display='inline-block';
-}
-
-// ===== Admin Setup/Login/View switching =====
-const adminSetupView = document.getElementById('adminSetupView');
-const adminLoginView = document.getElementById('adminLoginView');
-const adminPanel = document.getElementById('adminPanel');
-
-function ensureAdminViews(){
-  DB = loadDB();
-  if(!DB.admin){
-    // no admin created yet -> show setup
-    adminSetupView.style.display='block';
-    adminLoginView.style.display='none';
-    adminPanel.style.display='none';
-  }else if(!currentUser || currentUser.role!=='admin'){
-    // admin exists but not signed in
-    adminSetupView.style.display='none';
-    adminLoginView.style.display='block';
-    adminPanel.style.display='none';
-  }else{
-    // signed in as admin
-    adminSetupView.style.display='none';
-    adminLoginView.style.display='none';
-    adminPanel.style.display='block';
-  }
-}
-ensureAdminViews();
-
-// Create Admin (nickname + password)
-document.getElementById('setupBtn').onclick = ()=>{
-  const nick = (document.getElementById('setupNick').value||'').trim();
-  const pass = (document.getElementById('setupPass').value||'').trim();
-  if(!nick || !pass){ alert('Enter nickname and password.'); return; }
-  DB = loadDB();
-  if(DB.admin){ alert('Admin already exists.'); return; }
-  DB.admin = { username:nick, password:pass };
-  saveDB(DB);
-  setSignedIn('admin', nick);
-  ensureAdminViews();
-  renderTable();
-  clearSelected();
-};
-
-// Admin login
-document.getElementById('adminLoginBtn').onclick = ()=>{
-  const u = (document.getElementById('adminUsername').value||'').trim();
-  const p = document.getElementById('adminPassword').value||'';
-  DB = loadDB();
-  if(DB.admin && DB.admin.username===u && DB.admin.password===p){
-    setSignedIn('admin', u);
-    ensureAdminViews();
-    renderTable();
-    clearSelected();
-  } else {
-    alert('Invalid admin credentials.');
-  }
-};
-
-// ===== Investor Login/Dashboard =====
-document.getElementById('invLoginBtn').onclick = ()=>{
-  const u = document.getElementById('invUsername').value.trim();
-  const p = document.getElementById('invPassword').value;
-  DB = loadDB();
-  const acc = DB.investors[u];
-  if(acc && acc.password === p){
-    setSignedIn('investor', u);
-    document.getElementById('investorLoginView').style.display='none';
-    document.getElementById('investorDashView').style.display='block';
-    renderInvestor(acc);
-  } else {
-    alert('Invalid investor credentials.');
-  }
-};
-
-function renderInvestor(acc){
-  document.getElementById('invName').textContent = acc.name;
-  document.getElementById('invUser').textContent = '@'+acc.username;
-  document.getElementById('invUpdated').textContent = acc.updated || '—';
-  document.getElementById('invBalance').textContent = peso.format(acc.balance||0);
-  document.getElementById('invEarnings').textContent = peso.format(acc.earnings||0);
-  // history table
-  const tbody = document.querySelector('#invHistoryTable tbody');
-  const rows = (acc.earningsHistory||[]).map(it =>
-    `<tr><td>${it.t}</td><td class="right">${peso.format(it.amt)}</td><td>${(it.note||'')}</td></tr>`
-  ).join('');
-  tbody.innerHTML = rows || '<tr><td colspan="3" class="muted">No earnings yet.</td></tr>';
-  // all transactions
-  const logDiv = document.getElementById('invLog');
-  logDiv.innerHTML = (acc.log||[]).map(x=>`<div class="log-item"><span>${x.m}</span><span class="muted">${x.t}</span></div>`).join('') || '<div class="muted">No transactions yet.</div>';
-}
-
-// Live refresh investor view
-setInterval(()=>{
-  if(currentUser && currentUser.role==='investor'){
-    DB = loadDB();
-    const acc = DB.investors[currentUser.username];
-    if(acc){ renderInvestor(acc); }
-  }
-}, 1500);
-
-// ===== Admin Panel logic =====
-document.getElementById('createBtn').onclick = ()=>{
-  const name = (document.getElementById('newName').value||'').trim();
-  const user = (document.getElementById('newUser').value||'').trim();
-  const pass = (document.getElementById('newPass').value||'').trim();
-  if(!name || !user || !pass){ alert('Fill name, username, and password.'); return; }
-  DB = loadDB();
-  if(DB.investors[user]){ alert('Username already exists.'); return; }
-  DB.investors[user] = { username:user, password:pass, name, balance:0, earnings:0, updated: nowStr(), log:[], earningsHistory:[] };
-  addLog(DB.investors[user], 'Account created');
-  saveDB(DB);
-  renderTable();
-  document.getElementById('newName').value='';
-  document.getElementById('newUser').value='';
-  document.getElementById('newPass').value='';
-};
-
-document.getElementById('searchBox').oninput = renderTable;
-
-function renderTable(){
-  DB = loadDB();
-  const q = (document.getElementById('searchBox').value||'').toLowerCase();
-  const rows = listInvestors(DB)
-    .filter(x => x.name.toLowerCase().includes(q) || x.username.toLowerCase().includes(q))
-    .map(x => `<tr>
-      <td>${x.name}</td>
-      <td>${x.username}</td>
-      <td class="right">${peso.format(x.balance||0)}</td>
-      <td class="right">${peso.format(x.earnings||0)}</td>
-      <td class="right"><button class="ghost" onclick="selectUser('${x.username}')">Manage</button></td>
-    </tr>`).join('') || '<tr><td colspan="5" class="muted">No investors found.</td></tr>';
-  document.querySelector('#investorTable tbody').innerHTML = rows;
-}
-
-window.selectUser = function(username){
-  DB = loadDB();
-  selected = DB.investors[username];
-  if(!selected){ alert('Investor not found'); return; }
-  document.getElementById('selName').value = selected.name || '';
-  document.getElementById('selUser').value = selected.username || '';
-  document.getElementById('selBalance').value = selected.balance || 0;
-  document.getElementById('selEarnings').value = selected.earnings || 0;
-  renderAdminLog();
-  renderAdminHistory();
-};
-
-function renderAdminLog(){
-  const logDiv = document.getElementById('adminLog');
-  if(!selected){ logDiv.innerHTML = '<div class="muted">Select an investor to view logs.</div>'; return; }
-  logDiv.innerHTML = (selected.log||[]).map(x=>`<div class="log-item"><span>${x.m}</span><span class="muted">${x.t}</span></div>`).join('') || '<div class="muted">No transactions yet.</div>';
-}
-function renderAdminHistory(){
-  const tbody = document.querySelector('#adminHistoryTable tbody');
-  if(!selected){ tbody.innerHTML = '<tr><td colspan="3" class="muted">Select an investor to view earnings history.</td></tr>'; return; }
-  const rows = (selected.earningsHistory||[]).map(it =>
-    `<tr><td>${it.t}</td><td class="right">${peso.format(it.amt)}</td><td>${(it.note||'')}</td></tr>`
-  ).join('');
-  tbody.innerHTML = rows || '<tr><td colspan="3" class="muted">No earnings yet.</td></tr>';
-}
-
-document.getElementById('btnSetExact').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  const name = document.getElementById('selName').value.trim();
-  const bal = parseFloat(document.getElementById('selBalance').value)||0;
-  const earn = parseFloat(document.getElementById('selEarnings').value)||0;
-  selected.name = name || selected.name;
-  selected.balance = bal;
-  selected.earnings = earn;
-  addLog(selected, `Set exact → Balance ${peso.format(bal)}, Earnings ${peso.format(earn)}`);
-  saveDB(DB); renderTable(); renderAdminLog(); renderAdminHistory();
-};
-
-document.getElementById('btnResetPass').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  const n = prompt('New password for '+selected.username+':');
-  if(!n) return;
-  selected.password = n;
-  addLog(selected, 'Password reset by admin');
-  saveDB(DB); renderAdminLog();
-};
-
-document.getElementById('btnDelete').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  if(!confirm('Delete investor '+selected.username+'? This cannot be undone.')) return;
-  delete DB.investors[selected.username];
-  saveDB(DB); selected=null; clearSelected(); renderTable(); renderAdminLog(); renderAdminHistory();
-};
-function clearSelected(){
-  document.getElementById('selName').value='';
-  document.getElementById('selUser').value='';
-  document.getElementById('selBalance').value='';
-  document.getElementById('selEarnings').value='';
-  document.querySelector('#adminHistoryTable tbody').innerHTML = '<tr><td colspan="3" class="muted">Select an investor to view earnings history.</td></tr>';
-  document.getElementById('adminLog').innerHTML = '<div class="muted">Select an investor to view logs.</div>';
-}
-
-document.getElementById('btnCashIn').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  const amt = parseFloat(document.getElementById('amtCashIn').value)||0;
-  if(amt<=0){ alert('Enter a valid amount.'); return; }
-  selected.balance = (selected.balance||0) + amt;
-  addLog(selected, `Cash In +${peso.format(amt)} → Balance ${peso.format(selected.balance)}`);
-  saveDB(DB); renderTable(); renderAdminLog();
-  document.getElementById('selBalance').value = selected.balance;
-  document.getElementById('amtCashIn').value='';
-};
-
-document.getElementById('btnAddEarn').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  const amt = parseFloat(document.getElementById('amtAddEarn').value)||0;
-  const note = document.getElementById('noteAddEarn').value||'';
-  if(amt<=0){ alert('Enter a valid amount.'); return; }
-  selected.earnings = (selected.earnings||0) + amt;
-  addEarning(selected, amt, note);
-  saveDB(DB); renderTable(); renderAdminLog(); renderAdminHistory();
-  document.getElementById('selEarnings').value = selected.earnings;
-  document.getElementById('amtAddEarn').value='';
-  document.getElementById('noteAddEarn').value='';
-};
-
-document.getElementById('btnPayout').onclick = ()=>{
-  if(!selected){ alert('Select an investor first.'); return; }
-  const amt = parseFloat(document.getElementById('amtPayout').value)||0;
-  if(amt<=0){ alert('Enter a valid amount.'); return; }
-  if((selected.balance||0) < amt){ alert('Insufficient balance.'); return; }
-  selected.balance = (selected.balance||0) - amt;
-  addLog(selected, `Payout −${peso.format(amt)} → Balance ${peso.format(selected.balance)}`);
-  saveDB(DB); renderTable(); renderAdminLog();
-  document.getElementById('selBalance').value = selected.balance;
-  document.getElementById('amtPayout').value='';
-};
-
-// Show correct admin view on tab open
-document.getElementById('tabAdmin').addEventListener('click', ensureAdminViews);
-</script>
+  </script>
 </body>
 </html>
